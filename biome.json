@@ -1,0 +1,33 @@
+{
+	"extends": ["@orbitral/core/configs/biome"],
+
+	"files": {
+		"includes": [
+			"apps/**",
+			"packages/**",
+
+			"!!**/dist",
+			"!!**/.next",
+			"!!**/coverage",
+			"!!**/generated"
+		],
+		"ignoreUnknown": true
+	},
+
+	"formatter": {
+		"enabled": true,
+		"indentStyle": "tab",
+		"lineEnding": "lf",
+
+		"includes": [
+			"**/*.ts",
+			"**/*.tsx",
+			"**/*.js",
+			"**/*.jsx",
+
+			"!**/*.spec.ts",
+			"!**/*.test.ts",
+			"!**/test/**"
+		]
+	}
+}

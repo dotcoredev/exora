@@ -1,0 +1,23 @@
+{
+	"name": "exora",
+	"version": "1.0.0",
+	"description": "Explore global currencies, exchange rates, and historical trends.",
+	"private": true,
+	"scripts": {
+		"dev": "turbo dev",
+		"build": "turbo build",
+		"turbo:lint": "turbo lint",
+		"typecheck": "turbo typecheck",
+		"lint": "biome lint .",
+		"format": "biome format --write .",
+		"check": "biome check .",
+		"check:fix": "biome check --write ."
+	},
+	"author": "dotcore <dotcoredev@gmail.com>",
+	"packageManager": "pnpm@10.33.4",
+	"devDependencies": {
+		"@biomejs/biome": "2.5.7",
+		"@orbitral/core": "^1.2.0",
+		"turbo": "^2.10.9"
+	}
+}
