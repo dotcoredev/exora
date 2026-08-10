@@ -1,0 +1,11 @@
+model Currency {
+  id         String   @id @default(nanoid())
+  isoCode    String   @unique @map("iso_code") @db.VarChar(3)
+  isoNumeric String?   @map("iso_numeric") @db.VarChar(3)
+  name       String
+  ru         String
+  symbol     String
+  startDate  DateTime @map("start_date") @db.Date
+
+  @@map("currencies")
+}
