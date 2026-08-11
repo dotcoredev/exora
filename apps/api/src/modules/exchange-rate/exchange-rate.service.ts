@@ -1,10 +1,10 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { FrankfurterService } from "./frankfurter.service";
-import type { CurrencyResponseDto } from "@/common/dto/responses";
+import type { CurrencyRateResponseDto } from "@/common/dto/responses";
 import { RedisService } from "@/infra/redis/redis.service";
-import { RATES_POPULAR } from "./constants/rates.constants";
 import { ConfigService } from "@nestjs/config";
 import { ConfigsType } from "@/config";
+import { RATES_POPULAR } from "@/common/constants";
 
 @Injectable()
 export class ExchangeRateService {
@@ -26,23 +26,34 @@ export class ExchangeRateService {
 
 	public async getRate(
 		base: string,
-		quotes: string | null,
-	): Promise<CurrencyResponseDto[]> {
-		const result = await this.frankfurterService.getRate(base, quotes);
-		this.incrementPairPopularity(base, quotes).catch((error) => {
+		quotes?: string,
+	): Promise<CurrencyRateResponseDto[]> {
+		const requestedQuotes = [
+			...new Set([
+				...(quotes ? quotes.split(",").filter((item) => item) : []),
+			]),
+		].join(",");
+
+		const result = await this.frankfurterService.getRate(
+			base,
+			requestedQuotes,
+		);
+
+		this.incrementPairPopularity(base, requestedQuotes).catch((error) => {
 			this.logger.error(
-				`Failed to increment popularity ${base}:${quotes}`,
+				`Failed to increment popularity ${base}:${requestedQuotes}`,
 				error,
 			);
 		});
+
 		return result;
 	}
 
 	private async incrementPairPopularity(
 		base: string,
-		quotes: string | null,
+		quotes?: string,
 	): Promise<void> {
-		const pair = `${base}:${quotes ?? "all"}`;
+		const pair = `${base}:${quotes?.length ? quotes : "all"}`;
 
 		await this.redisService
 			.multi()
