@@ -8,7 +8,7 @@ import { HttpService } from "@nestjs/axios";
 import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { firstValueFrom } from "rxjs";
-import { CurrencyCacheService } from "./carrency-cache.service";
+import { CurrencyCacheService } from "./currency-cache.service";
 import { KEY_RATES } from "@/common/constants";
 import { RateHistoryService } from "@/modules/rate-history/rate-history.service";
 
