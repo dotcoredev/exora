@@ -1,4 +1,7 @@
-import type { CurrencyRateDefaultResponseDto } from "@/common/dto/responses";
+import type {
+	CurrencyRateDefaultResponseDto,
+	CurrencyRateResponseDto,
+} from "@/common/dto/responses";
 import { PrismaService } from "@/infra/prisma/prisma.service";
 import { Injectable } from "@nestjs/common";
 import type { RateHistoryPeriod } from "./interfaces";
@@ -91,5 +94,131 @@ export class RateHistoryService {
 				});
 			}),
 		);
+	}
+
+	public async getRecentRates(
+		base: string,
+		quotes: string[],
+	): Promise<CurrencyRateResponseDto[]> {
+		if (!quotes.length) {
+			return [];
+		}
+
+		const latest = await this.prismaService.rateHistory.findFirst({
+			where: {
+				base,
+				quote: {
+					in: quotes,
+				},
+			},
+			orderBy: {
+				date: "desc",
+			},
+			select: {
+				date: true,
+			},
+		});
+
+		if (!latest) {
+			return [];
+		}
+
+		const previous = await this.prismaService.rateHistory.findFirst({
+			where: {
+				base,
+				quote: {
+					in: quotes,
+				},
+				date: {
+					lt: latest.date,
+				},
+			},
+			orderBy: {
+				date: "desc",
+			},
+			select: {
+				date: true,
+			},
+		});
+
+		const currentRates = await this.prismaService.rateHistory.findMany({
+			where: {
+				base,
+				quote: {
+					in: quotes,
+				},
+				date: latest.date,
+			},
+			select: {
+				base: true,
+				quote: true,
+				rate: true,
+				date: true,
+			},
+		});
+
+		const currentMap = new Map(
+			currentRates.map((rate) => [rate.quote, rate]),
+		);
+
+		if (!previous) {
+			return quotes
+				.map((quote) => currentMap.get(quote))
+				.filter((rate) => rate !== undefined)
+				.map((rate) => ({
+					...rate,
+					date: rate.date.toISOString(),
+					rate: Number(rate.rate),
+					change: null,
+					changePercent: null,
+				}));
+		}
+
+		const previousRates = await this.prismaService.rateHistory.findMany({
+			where: {
+				base,
+				quote: {
+					in: quotes,
+				},
+				date: previous.date,
+			},
+			select: {
+				quote: true,
+				rate: true,
+			},
+		});
+
+		const previousMap = new Map(
+			previousRates.map((rate) => [rate.quote, Number(rate.rate)]),
+		);
+
+		return quotes
+			.map((quote) => currentMap.get(quote))
+			.filter((rate) => rate !== undefined)
+			.map((rate) => {
+				const currentRate = Number(rate.rate);
+				const previousRate = previousMap.get(rate.quote);
+
+				if (previousRate === undefined) {
+					return {
+						...rate,
+						date: rate.date.toISOString(),
+						rate: currentRate,
+						change: null,
+						changePercent: null,
+					};
+				}
+
+				const change = currentRate - previousRate;
+				const changePercent = (change / previousRate) * 100;
+
+				return {
+					...rate,
+					date: rate.date.toISOString(),
+					rate: currentRate,
+					change,
+					changePercent,
+				};
+			});
 	}
 }

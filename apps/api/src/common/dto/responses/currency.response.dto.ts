@@ -6,9 +6,11 @@ export type CurrencyResponseDto = Omit<CurrencyModel, "startDate"> & {
 
 export type CurrencyRateResponseDto = {
 	date: string;
-	base: CurrencyResponseDto | null;
-	quote: CurrencyResponseDto | null;
+	base: CurrencyResponseDto | string | null;
+	quote: CurrencyResponseDto | string | null;
 	rate: number;
+	change?: number | null;
+	changePercent?: number | null;
 };
 
 export type CurrencyRateDefaultResponseDto = {

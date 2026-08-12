@@ -82,14 +82,12 @@ export class FrankfurterService {
 			2. сохраняем в редис в качестве кеша (ttl 4 часа)
 			3. отдаем результат клиенту
 		*/
-		const result: CurrencyRateResponseDto[] =
-			Array.isArray(response.data) && response.data.length
-				? response.data.map((rate) => ({
-						...rate,
-						base: this.currencyCacheService.get(rate.base),
-						quote: this.currencyCacheService.get(rate.quote),
-					}))
-				: [];
+		const result: CurrencyRateResponseDto[] = response.data.map((rate) => ({
+			...rate,
+			base: this.currencyCacheService.get(rate.base),
+			quote: this.currencyCacheService.get(rate.quote),
+		}));
+
 		await this.redisService.set(
 			key,
 			JSON.stringify(result),

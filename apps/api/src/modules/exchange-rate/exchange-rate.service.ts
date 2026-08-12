@@ -5,6 +5,8 @@ import { RedisService } from "@/infra/redis/redis.service";
 import { ConfigService } from "@nestjs/config";
 import { ConfigsType } from "@/config";
 import { RATES_POPULAR } from "@/common/constants";
+import { RateHistoryService } from "@/modules/rate-history/rate-history.service";
+import { CurrencyCacheService } from "./currency-cache.service";
 
 @Injectable()
 export class ExchangeRateService {
@@ -15,12 +17,47 @@ export class ExchangeRateService {
 		private readonly frankfurterService: FrankfurterService,
 		private readonly redisService: RedisService,
 		private readonly configService: ConfigService<ConfigsType>,
+		private readonly rateHistoryService: RateHistoryService,
+		private readonly currencyCacheService: CurrencyCacheService,
 	) {
 		this.TTL_RATES_POPULAR = this.configService.getOrThrow(
 			"app.ttl_rates_popular",
 			{
 				infer: true,
 			},
+		);
+	}
+
+	public async recentExchange(
+		base: string,
+	): Promise<CurrencyRateResponseDto[]> {
+		const quotes = await this.getPopularQuotes(base, 20);
+
+		const result = await this.rateHistoryService.getRecentRates(
+			base,
+			quotes,
+		);
+		return result.map((rate) => ({
+			...rate,
+			base:
+				typeof rate.base === "string"
+					? this.currencyCacheService.get(rate.base)
+					: rate.base,
+			quote:
+				typeof rate.quote === "string"
+					? this.currencyCacheService.get(rate.quote)
+					: rate.quote,
+		}));
+	}
+
+	private async getPopularQuotes(
+		base: string,
+		limit = 20,
+	): Promise<string[]> {
+		return this.redisService.zrevrange(
+			`${RATES_POPULAR}:${base}`,
+			0,
+			limit,
 		);
 	}
 
@@ -54,11 +91,34 @@ export class ExchangeRateService {
 		quotes?: string,
 	): Promise<void> {
 		const pair = `${base}:${quotes?.length ? quotes : "all"}`;
+		const key = `${RATES_POPULAR}:${base}`;
 
-		await this.redisService
-			.multi()
-			.zincrby(RATES_POPULAR, 1, pair)
-			.expire(RATES_POPULAR, this.TTL_RATES_POPULAR, "NX")
-			.exec();
+		if (!quotes?.length) {
+			await this.redisService
+				.multi()
+				.zincrby(key, 1, "all")
+				.expire(key, this.TTL_RATES_POPULAR, "NX")
+				.exec();
+
+			return;
+		}
+
+		const quoteCodes = [
+			...new Set(
+				quotes
+					.split(",")
+					.map((quote) => quote.trim())
+					.filter(Boolean),
+			),
+		];
+
+		const multi = this.redisService.multi();
+
+		for (const quote of quoteCodes) {
+			multi.zincrby(key, 1, quote);
+		}
+
+		multi.expire(key, this.TTL_RATES_POPULAR, "NX");
+		await multi.exec();
 	}
 }
