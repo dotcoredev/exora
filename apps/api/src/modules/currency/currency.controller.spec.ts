@@ -14,7 +14,6 @@ const currencies = {
 
 describe("Currency controller tests", () => {
     let controller: CurrencyController;
-    let service: CurrencyService;
 
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -28,7 +27,6 @@ describe("Currency controller tests", () => {
         }).compile();
 
         controller = module.get<CurrencyController>(CurrencyController);
-        service = module.get<CurrencyService>(CurrencyService);
     });
 
     it('should be defined', () => {
