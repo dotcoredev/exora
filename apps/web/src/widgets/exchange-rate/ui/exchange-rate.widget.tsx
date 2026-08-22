@@ -5,12 +5,16 @@ import { Select } from "@/features/select";
 import { ArrowLeftRight } from "lucide-react";
 
 export function ExchangeRateWidget() {
-	const { data } = useCurrencies();
+	const { data, isLoading } = useCurrencies();
 
 	return (
 		<div className="bg-surface-soft p-7 border border-primary/17 rounded-2xl grid grid-cols-[1fr_auto_1fr] items-end gap-8">
 			<div className="space-y-2">
-				<Select options={data ?? []} symbol="From" />
+				<Select
+					loading={isLoading}
+					options={data ?? []}
+					symbol="From"
+				/>
 			</div>
 
 			<button
@@ -22,7 +26,7 @@ export function ExchangeRateWidget() {
 			</button>
 
 			<div className="space-y-2">
-				<Select options={data ?? []} symbol="To" />
+				<Select loading={isLoading} options={data ?? []} symbol="To" />
 			</div>
 		</div>
 	);
