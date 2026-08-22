@@ -6,6 +6,6 @@
     "source.fixAll.biome": "explicit",
     "source.organizeImports.biome": "explicit"
   },
-
+  "css.lint.unknownAtRules": "ignore",
   "files.eol": "\n"
 }
