@@ -69,7 +69,13 @@ export function Select({
 					onClick={() => setOpen((prev) => !prev)}
 					className="flex cursor-pointer h-14 w-full items-center justify-between rounded-xl border border-slate-800 px-5 text-slate-300"
 				>
-					<span>{value ?? "Выберите валюту"}</span>
+					{value ? (
+						<span className="font-bold text-foreground">
+							{value}
+						</span>
+					) : (
+						<span>Выберите валюту</span>
+					)}
 
 					<ChevronDown className="size-5" />
 				</button>

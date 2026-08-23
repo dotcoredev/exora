@@ -10,4 +10,9 @@ export class CurrencyController {
 	async currencies(): Promise<CurrencyResponseDto[]> {
 		return this.currencyService.currencies();
 	}
+
+	@Get("/popular")
+	async popularCurrencies(): Promise<CurrencyResponseDto[]> {
+		return this.currencyService.popularCurrencies();
+	}
 }

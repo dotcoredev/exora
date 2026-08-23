@@ -90,8 +90,13 @@ export class ExchangeRateService {
 		base: string,
 		quotes?: string,
 	): Promise<void> {
-		const pair = `${base}:${quotes?.length ? quotes : "all"}`;
 		const key = `${RATES_POPULAR}:${base}`;
+
+		await this.redisService
+			.multi()
+			.zincrby(RATES_POPULAR, 1, base)
+			.expire(RATES_POPULAR, this.TTL_RATES_POPULAR, "NX")
+			.exec();
 
 		if (!quotes?.length) {
 			await this.redisService

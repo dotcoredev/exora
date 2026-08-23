@@ -26,5 +26,6 @@ import { RateHistoryModule } from "@/modules/rate-history/rate-history.module";
 	],
 	controllers: [ExchangeRateController],
 	providers: [ExchangeRateService, FrankfurterService, CurrencyCacheService],
+	exports: [CurrencyCacheService],
 })
 export class ExchangeRateModule {}

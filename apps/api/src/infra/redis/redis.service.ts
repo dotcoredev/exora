@@ -16,10 +16,7 @@ export class RedisService
 	private readonly logger = new Logger(RedisService.name);
 
 	constructor(configService: ConfigService<ConfigsType>) {
-		super({
-			...configService.getOrThrow("redis"),
-			lazyConnect: true,
-		});
+		super(configService.getOrThrow("redis"));
 	}
 
 	async onModuleInit(): Promise<void> {
