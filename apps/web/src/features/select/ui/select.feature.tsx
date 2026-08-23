@@ -4,15 +4,24 @@ import { ChevronDown, Search } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 type SelectProps = {
-	symbol: string;
+	label: string;
 	options: Currency[];
 	loading: boolean;
+	value: string | null;
+	onValueChange: (value: string) => void;
+	id: string;
 };
 
-export function Select({ symbol, options, loading }: SelectProps) {
+export function Select({
+	label,
+	options,
+	loading,
+	value,
+	onValueChange,
+	id,
+}: SelectProps) {
 	const [open, setOpen] = useState(false);
 	const [query, setQuery] = useState("");
-	const [selected, setSelected] = useState<string | null>(null);
 	const selectRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
@@ -46,28 +55,28 @@ export function Select({ symbol, options, loading }: SelectProps) {
 	return (
 		<div className="relative w-full" ref={selectRef}>
 			<label
-				htmlFor="select"
+				htmlFor={id}
 				className="block text-sm font-medium text-white mb-2"
 			>
-				{symbol}
+				{label}
 			</label>
 			{loading ? (
 				<Loader />
 			) : (
 				<button
-					id="select"
+					id={id}
 					type="button"
 					onClick={() => setOpen((prev) => !prev)}
 					className="flex cursor-pointer h-14 w-full items-center justify-between rounded-xl border border-slate-800 px-5 text-slate-300"
 				>
-					<span>{selected ?? "Выберите валюту"}</span>
+					<span>{value ?? "Выберите валюту"}</span>
 
 					<ChevronDown className="size-5" />
 				</button>
 			)}
 
 			{open && (
-				<div className="absolute left-0 top-7 z-50 w-full rounded-xl border border-slate-800 bg-slate-950 p-2 shadow-xl">
+				<div className="absolute left-0 top-full z-50 w-full rounded-xl border border-slate-800 bg-slate-950 p-2 shadow-xl">
 					<div className="flex items-center gap-2 border-b border-slate-800 px-3">
 						<Search className="size-4 text-slate-500" />
 
@@ -86,7 +95,7 @@ export function Select({ symbol, options, loading }: SelectProps) {
 									key={currency.isoCode}
 									type="button"
 									onClick={() => {
-										setSelected(currency.isoCode);
+										onValueChange(currency.isoCode);
 										setOpen(false);
 										setQuery("");
 									}}
