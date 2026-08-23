@@ -26,7 +26,7 @@ export function ExchangeRateWidget() {
 	}
 
 	return (
-		<div className="bg-surface-soft p-7 border border-primary/17 rounded-2xl grid grid-cols-[1fr_auto_1fr] items-end gap-8">
+		<div className="grid grid-cols-[1fr_auto_1fr] items-end gap-8">
 			<div className="space-y-2">
 				<Select
 					loading={isLoading}
