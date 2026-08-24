@@ -1,10 +1,12 @@
 "use client";
 
 import { usePopularCurrencies } from "@/entities/currency";
+import { useCurrencyFilterStore } from "@/features/currency-filter";
 import { Badge, Loader, NotFound } from "@/shared/ui";
 
 export function PopularCurrencies() {
 	const { data, isLoading } = usePopularCurrencies();
+	const setFrom = useCurrencyFilterStore((state) => state.setFrom);
 
 	return (
 		<section className="flex flex-col gap-y-2">
@@ -17,6 +19,7 @@ export function PopularCurrencies() {
 						<Badge
 							key={currency.id}
 							text={`${currency.isoCode} - ${currency.ru}`}
+							onSelect={() => setFrom(currency.isoCode)}
 						/>
 					))
 				) : (
