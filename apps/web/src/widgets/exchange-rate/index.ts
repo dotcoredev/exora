@@ -1,1 +1,1 @@
-export { ExchangeRateWidget } from "./ui/exchange-rate.widget";
+export { ExchangeRateChart } from "./ui/exchange-rate";
