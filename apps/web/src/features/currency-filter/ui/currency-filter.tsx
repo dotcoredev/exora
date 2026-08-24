@@ -19,7 +19,7 @@ export function ExchangeRateFilter() {
 	);
 
 	return (
-		<div className="w-full grid lg:grid-cols-[1fr_auto_1fr] md:items-center items-end gap-8">
+		<div className="w-full grid lg:grid-cols-[1fr_auto_1fr] items-end gap-8">
 			<div className="space-y-2 w-full">
 				<Select
 					loading={isLoading}
