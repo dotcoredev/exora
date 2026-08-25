@@ -119,8 +119,6 @@ export class RateHistoryService {
 			},
 		});
 
-		console.log(33, latest);
-
 		if (!latest) {
 			return [];
 		}
