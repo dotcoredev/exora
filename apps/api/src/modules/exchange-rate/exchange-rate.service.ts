@@ -32,6 +32,7 @@ export class ExchangeRateService {
 		base: string,
 	): Promise<CurrencyRateResponseDto[]> {
 		const quotes = await this.getPopularQuotes(base, 20);
+		console.log(11, quotes);
 
 		const result = await this.rateHistoryService.getRecentRates(
 			base,
@@ -65,16 +66,20 @@ export class ExchangeRateService {
 		base: string,
 		quotes?: string,
 	): Promise<CurrencyRateResponseDto[]> {
-		const requestedQuotes = [
-			...new Set([
-				...(quotes ? quotes.split(",").filter((item) => item) : []),
-			]),
-		].join(",");
+		const arrQutes = quotes ? quotes.split(",").filter((item) => item) : [];
+		const requestedQuotes = [...new Set([...arrQutes])].join(",");
 
 		const result = await this.frankfurterService.getRate(
 			base,
 			requestedQuotes,
 		);
+
+		const resultPercent = await this.rateHistoryService.getRecentRates(
+			base,
+			arrQutes,
+		);
+
+		//console.log(111, arrQutes, result, resultPercent);
 
 		this.incrementPairPopularity(base, requestedQuotes).catch((error) => {
 			this.logger.error(
@@ -83,7 +88,26 @@ export class ExchangeRateService {
 			);
 		});
 
-		return result;
+		return result.map((item) => {
+			const percent = resultPercent.find((itemP) => {
+				const baseCode =
+					typeof item.base === "string"
+						? item.base
+						: item.base?.isoCode;
+				const quoteCode =
+					typeof item.quote === "string"
+						? item.quote
+						: item.quote?.isoCode;
+
+				return itemP.base === baseCode && itemP.quote === quoteCode;
+			});
+
+			return {
+				...item,
+				change: percent?.change ?? null,
+				changePercent: percent?.changePercent ?? null,
+			};
+		});
 	}
 
 	private async incrementPairPopularity(

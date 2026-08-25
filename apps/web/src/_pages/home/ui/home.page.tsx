@@ -12,13 +12,7 @@ export function HomePage() {
 			<section className="flex flex-col bg-surface-soft p-7 border border-primary/17 rounded-2xl gap-4">
 				<ExchangeFilterWidget />
 				<PopularCurrencies />
-				<ExchangeRateChart
-					base="USD"
-					rate={477.12}
-					change={0.45}
-					changePercent={0.09}
-					updatedAt="10 Aug 2026, 15:30 UTC"
-				/>
+				<ExchangeRateChart />
 			</section>
 		</main>
 	);

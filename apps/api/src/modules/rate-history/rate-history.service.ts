@@ -119,11 +119,13 @@ export class RateHistoryService {
 			},
 		});
 
+		console.log(33, latest);
+
 		if (!latest) {
 			return [];
 		}
 
-		const previous = await this.prismaService.rateHistory.findFirst({
+		const previousRates = await this.prismaService.rateHistory.findMany({
 			where: {
 				base,
 				quote: {
@@ -136,8 +138,10 @@ export class RateHistoryService {
 			orderBy: {
 				date: "desc",
 			},
+			distinct: ["quote"],
 			select: {
-				date: true,
+				quote: true,
+				rate: true,
 			},
 		});
 
@@ -161,7 +165,7 @@ export class RateHistoryService {
 			currentRates.map((rate) => [rate.quote, rate]),
 		);
 
-		if (!previous) {
+		if (!previousRates.length) {
 			return quotes
 				.map((quote) => currentMap.get(quote))
 				.filter((rate) => rate !== undefined)
@@ -173,20 +177,6 @@ export class RateHistoryService {
 					changePercent: null,
 				}));
 		}
-
-		const previousRates = await this.prismaService.rateHistory.findMany({
-			where: {
-				base,
-				quote: {
-					in: quotes,
-				},
-				date: previous.date,
-			},
-			select: {
-				quote: true,
-				rate: true,
-			},
-		});
 
 		const previousMap = new Map(
 			previousRates.map((rate) => [rate.quote, Number(rate.rate)]),

@@ -32,7 +32,7 @@ export class FrankfurterService {
 
 	public async getRate(
 		base: string,
-		quotes?: string,
+		quotes: string,
 	): Promise<CurrencyRateResponseDto[]> {
 		/*---------------------*/
 		/*
