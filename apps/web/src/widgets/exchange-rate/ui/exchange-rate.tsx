@@ -4,7 +4,7 @@ import { Info } from "lucide-react";
 import { ChartRate } from "./chart";
 import { useCurrencyFilterStore } from "@/features/currency-filter";
 import { useExchangeRate } from "@/entities/currency";
-import { Loader, NotFound } from "@/shared/ui";
+import { NotFound } from "@/shared/ui";
 
 export function ExchangeRateChart() {
 	const from = useCurrencyFilterStore((state) => state.from);
@@ -61,7 +61,7 @@ export function ExchangeRateChart() {
 
 				<div className="min-w-0">
 					<div className="h-40 w-full">
-						<ChartRate />
+						<ChartRate from={from} to={to} />
 					</div>
 				</div>
 			</div>

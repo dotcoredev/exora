@@ -1,5 +1,5 @@
 import { api } from "@/shared/api";
-import { Currency } from "../model/currency.types";
+import type { Currency } from "../model/currency.types";
 
 export async function getPopularCurrencies(): Promise<Currency[]> {
 	try {

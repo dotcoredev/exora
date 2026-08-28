@@ -20,3 +20,10 @@ export type CurrencyRate = {
 	change?: number | null;
 	changePercent?: number | null;
 };
+
+export type RecentRate = {
+	date: string;
+	rate: number;
+	base: string;
+	quote: string;
+};

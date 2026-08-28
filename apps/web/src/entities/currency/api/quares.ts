@@ -4,9 +4,10 @@ import {
 	type UseQueryResult,
 } from "@tanstack/react-query";
 import { getCurrencies } from "./get-currencies";
-import { Currency, CurrencyRate } from "../model/currency.types";
+import { Currency, CurrencyRate, RecentRate } from "../model/currency.types";
 import { getPopularCurrencies } from "./get-popular-currencies";
 import { getExchangeRate } from "./get-exchange-rate";
+import { getRecentRates } from "./get-recent-rates";
 
 export function useCurrencies(): UseQueryResult<Currency[], Error> {
 	return useQuery({
@@ -45,6 +46,27 @@ export function useExchangeRate(
 
 		queryFn: ({ signal }) =>
 			getExchangeRate({
+				from,
+				to,
+				signal,
+			}),
+
+		enabled: Boolean(from && to && from !== to),
+		placeholderData: keepPreviousData,
+
+		staleTime: 1000 * 60 * 5,
+	});
+}
+
+export function useRecentRates(
+	from: string | null,
+	to: string | null,
+): UseQueryResult<RecentRate[], Error> {
+	return useQuery({
+		queryKey: ["recent-rates", from, to],
+
+		queryFn: ({ signal }) =>
+			getRecentRates({
 				from,
 				to,
 				signal,

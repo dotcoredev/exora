@@ -1,3 +1,4 @@
+import { useRecentRates } from "@/entities/currency";
 import { useId } from "react";
 import {
 	Area,
@@ -9,67 +10,22 @@ import {
 	YAxis,
 } from "recharts";
 
-const chartData = [
-	{ time: "00:00", value: 478.4 },
-	{ time: "00:30", value: 477.2 },
-	{ time: "01:00", value: 476.5 },
-	{ time: "01:30", value: 476.9 },
-	{ time: "02:00", value: 476.3 },
-	{ time: "02:30", value: 476.4 },
-	{ time: "03:00", value: 478.1 },
-	{ time: "03:30", value: 478.4 },
-	{ time: "04:00", value: 478.7 },
-	{ time: "04:30", value: 477.7 },
-	{ time: "05:00", value: 478.3 },
-	{ time: "05:30", value: 478.2 },
-	{ time: "06:00", value: 477.2 },
-	{ time: "06:30", value: 476.7 },
-	{ time: "07:00", value: 476.8 },
-	{ time: "07:30", value: 477.2 },
-	{ time: "08:00", value: 476.6 },
-	{ time: "08:30", value: 476.9 },
-	{ time: "09:00", value: 476.3 },
-	{ time: "09:30", value: 476.9 },
-	{ time: "10:00", value: 475.4 },
-	{ time: "10:30", value: 475.9 },
-	{ time: "11:00", value: 476.5 },
-	{ time: "11:30", value: 475.7 },
-	{ time: "12:00", value: 475.3 },
-	{ time: "12:30", value: 473.8 },
-	{ time: "13:00", value: 475.2 },
-	{ time: "13:30", value: 474.3 },
-	{ time: "14:00", value: 473.9 },
-	{ time: "14:30", value: 474.8 },
-	{ time: "15:00", value: 474.7 },
-	{ time: "15:30", value: 475.6 },
-	{ time: "16:00", value: 475.2 },
-	{ time: "16:30", value: 475.9 },
-	{ time: "17:00", value: 475.6 },
-	{ time: "17:30", value: 475.3 },
-	{ time: "18:00", value: 476.9 },
-	{ time: "18:30", value: 477.1 },
-	{ time: "19:00", value: 476.6 },
-	{ time: "19:30", value: 476.9 },
-	{ time: "20:00", value: 477.9 },
-	{ time: "20:30", value: 477.7 },
-	{ time: "21:00", value: 478.5 },
-	{ time: "21:30", value: 478.2 },
-	{ time: "22:00", value: 478.8 },
-	{ time: "22:30", value: 479.3 },
-	{ time: "23:00", value: 479.0 },
-	{ time: "23:30", value: 479.4 },
-];
+type Props = {
+	from: string | null;
+	to: string | null;
+};
 
-export function ChartRate() {
+export function ChartRate({ from, to }: Props) {
 	const gradientId = useId().replaceAll(":", "");
+	const { data } = useRecentRates(from, to);
 
 	return (
 		<ResponsiveContainer width="100%" height="100%">
 			<AreaChart
-				data={chartData}
+				data={data}
 				margin={{
-					top: 4,
-					right: 8,
+					top: 0,
+					right: 0,
 					bottom: 0,
 					left: 0,
 				}}
@@ -121,7 +77,7 @@ export function ChartRate() {
 				/>
 
 				<Tooltip
-					formatter={(value) => [`${Number(value).toFixed(2)} KZT`]}
+					formatter={(value) => [`${Number(value).toFixed(2)} ${to}`]}
 					contentStyle={{
 						background: "var(--color-surface-soft)",
 						border: "1px solid var(--color-border)",
