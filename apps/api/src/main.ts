@@ -19,6 +19,6 @@ async function bootstrap() {
 	app.enableShutdownHooks();
 	app.useGlobalInterceptors(new LoggingInterceptor());
 
-	await app.listen(port);
+	await app.listen(port, "0.0.0.0");
 }
 bootstrap();

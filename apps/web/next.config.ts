@@ -1,8 +1,13 @@
 import type { NextConfig } from "next";
+import path from "node:path";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  reactCompiler: true,
+	reactCompiler: true,
+	output: "standalone",
+	outputFileTracingRoot: path.join(process.cwd(), "../.."),
+	outputFileTracingIncludes: {
+		"*": ["./node_modules/@swc/helpers/esm/**"],
+	},
 };
 
 export default nextConfig;
