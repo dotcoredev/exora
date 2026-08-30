@@ -197,8 +197,8 @@ jobs:
           compose up -d --wait postgres redis
 
           echo "=== Prisma migrations ==="
-          compose run --rm --no-deps api \
-            ./node_modules/.bin/prisma migrate deploy
+          compose run --rm --no-deps -T api \
+            ./node_modules/.bin/prisma migrate deploy < /dev/null
 
           if [[ "${{ needs.changes.outputs.api == 'true' || github.event_name == 'workflow_dispatch' }}" == "true" ]]; then
             echo "=== Recreate API ==="
