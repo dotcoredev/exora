@@ -43,7 +43,7 @@ services:
     image: ghcr.io/dotcoredev/exora-api:latest
     restart: unless-stopped
     env_file:
-      - /var/exora/env/production.env
+      - /var/nicode/env/production.env
     depends_on:
       postgres:
         condition: service_healthy
