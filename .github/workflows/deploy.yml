@@ -264,16 +264,22 @@ jobs:
           $COMPOSE pull
 
           echo "=== Start PostgreSQL and Redis ==="
+          $COMPOSE up -d postgres redis
+
+          echo "=== Wait for PostgreSQL and Redis ==="
           $COMPOSE up -d --wait postgres redis
 
           echo "=== Prisma migrations ==="
           $COMPOSE run --rm --no-deps api ./node_modules/.bin/prisma migrate deploy
 
-          echo "=== Start application ==="
-          $COMPOSE up -d --remove-orphans
+          echo "=== Start API and Web ==="
+          $COMPOSE up -d api web
 
-          echo "=== Containers ==="
-          $COMPOSE ps
+          echo "=== Start Nginx ==="
+          $COMPOSE up -d nginx
+
+          echo "=== Container status ==="
+          $COMPOSE ps -a
 
           echo "=== Remove unused images ==="
           docker image prune -f
