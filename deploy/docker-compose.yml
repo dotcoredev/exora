@@ -75,8 +75,7 @@ services:
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
 
       # Сертификаты
-      - /var/nicode/certs/live/exora.nicodes.ru:/etc/nginx/ssl/exora:ro
-      - /var/nicode/certs/live/api.nicodes.ru:/etc/nginx/ssl/api:ro
+      - /var/nicode/certs:/etc/letsencrypt:ro
 
 
 volumes:
