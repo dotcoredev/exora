@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-
   workflow_dispatch:
 
 concurrency:
@@ -13,10 +12,8 @@ concurrency:
 
 env:
   REGISTRY: ghcr.io
-
   API_IMAGE: ghcr.io/dotcoredev/exora-api
   WEB_IMAGE: ghcr.io/dotcoredev/exora-web
-
 
 jobs:
   # =========================================================
@@ -48,7 +45,6 @@ jobs:
               - 'pnpm-workspace.yaml'
               - 'turbo.json'
               - '.dockerignore'
-
             web:
               - 'apps/web/**'
               - 'packages/**'
@@ -57,25 +53,34 @@ jobs:
               - 'pnpm-workspace.yaml'
               - 'turbo.json'
               - '.dockerignore'
-
             infra:
               - 'deploy/**'
               - '.github/workflows/deploy.yml'
 
-
   # =========================================================
-  # BUILD API
+  # BUILD (api + web через matrix)
   # =========================================================
-  build-api:
-    name: Build API
+  build:
+    name: Build ${{ matrix.name }}
     runs-on: ubuntu-latest
+    needs: changes
 
-    needs:
-      - changes
-
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      needs.changes.outputs.api == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: api
+            image: ghcr.io/dotcoredev/exora-api
+            dockerfile: ./apps/api/Dockerfile
+            changed: ${{ needs.changes.outputs.api }}
+            build_args: |
+              DATABASE_URI=postgresql://unused:unused@localhost:5432/unused
+          - name: web
+            image: ghcr.io/dotcoredev/exora-web
+            dockerfile: ./apps/web/Dockerfile
+            changed: ${{ needs.changes.outputs.web }}
+            build_args: |
+              NEXT_PUBLIC_API_URL=https://api.nicodes.ru/api
 
     permissions:
       contents: read
@@ -83,87 +88,34 @@ jobs:
 
     steps:
       - name: Checkout repository
+        if: github.event_name == 'workflow_dispatch' || matrix.changed == 'true'
         uses: actions/checkout@v7
 
       - name: Set up Docker Buildx
+        if: github.event_name == 'workflow_dispatch' || matrix.changed == 'true'
         uses: docker/setup-buildx-action@v4
 
       - name: Login to GHCR
+        if: github.event_name == 'workflow_dispatch' || matrix.changed == 'true'
         uses: docker/login-action@v4
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push API
+      - name: Build and push
+        if: github.event_name == 'workflow_dispatch' || matrix.changed == 'true'
         uses: docker/build-push-action@v7
         with:
           context: .
-          file: ./apps/api/Dockerfile
-
+          file: ${{ matrix.dockerfile }}
           push: true
-
-          build-args: |
-            DATABASE_URI=postgresql://unused:unused@localhost:5432/unused
-
+          build-args: ${{ matrix.build_args }}
           tags: |
-            ${{ env.API_IMAGE }}:latest
-            ${{ env.API_IMAGE }}:${{ github.sha }}
-
-          cache-from: type=gha,scope=api
-          cache-to: type=gha,mode=max,scope=api
-
-
-  # =========================================================
-  # BUILD WEB
-  # =========================================================
-  build-web:
-    name: Build Web
-    runs-on: ubuntu-latest
-
-    needs:
-      - changes
-
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      needs.changes.outputs.web == 'true'
-
-    permissions:
-      contents: read
-      packages: write
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v7
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-
-      - name: Login to GHCR
-        uses: docker/login-action@v4
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push Web
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          file: ./apps/web/Dockerfile
-
-          push: true
-
-          build-args: |
-            NEXT_PUBLIC_API_URL=https://api.nicodes.ru/api
-
-          tags: |
-            ${{ env.WEB_IMAGE }}:latest
-            ${{ env.WEB_IMAGE }}:${{ github.sha }}
-
-          cache-from: type=gha,scope=web
-          cache-to: type=gha,mode=max,scope=web
-
+            ${{ matrix.image }}:latest
+            ${{ matrix.image }}:${{ github.sha }}
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.name }}
 
   # =========================================================
   # DEPLOY VPS
@@ -174,26 +126,19 @@ jobs:
 
     needs:
       - changes
-      - build-api
-      - build-web
+      - build
 
-    # skipped build-api/build-web не должны блокировать deploy.
+    # build со skipped-легами матрицы всё равно даёт result == 'success',
+    # поэтому отдельно проверять build-api/build-web не нужно.
     if: |
       always() &&
       needs.changes.result == 'success' &&
+      needs.build.result == 'success' &&
       (
         github.event_name == 'workflow_dispatch' ||
         needs.changes.outputs.api == 'true' ||
         needs.changes.outputs.web == 'true' ||
         needs.changes.outputs.infra == 'true'
-      ) &&
-      (
-        needs.build-api.result == 'success' ||
-        needs.build-api.result == 'skipped'
-      ) &&
-      (
-        needs.build-web.result == 'success' ||
-        needs.build-web.result == 'skipped'
       )
 
     permissions:
@@ -203,26 +148,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-
-      # -------------------------------------------------------
-      # SSH
-      # -------------------------------------------------------
       - name: Configure SSH
         shell: bash
         run: |
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
-
           printf '%s\n' "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-
           printf '%s\n' "${{ secrets.VPS_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
 
-
-      # -------------------------------------------------------
-      # SERVER DIRECTORIES
-      # -------------------------------------------------------
       - name: Prepare server directory
         run: |
           ssh \
@@ -230,10 +165,6 @@ jobs:
             "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" \
             "mkdir -p /var/nicode/infra"
 
-
-      # -------------------------------------------------------
-      # UPLOAD INFRA
-      # -------------------------------------------------------
       - name: Upload infrastructure
         run: |
           rsync \
@@ -244,10 +175,6 @@ jobs:
             deploy/ \
             "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/var/nicode/infra/"
 
-
-      # -------------------------------------------------------
-      # DEPLOY
-      # -------------------------------------------------------
       - name: Deploy containers
         run: |
           ssh \
@@ -272,10 +199,6 @@ jobs:
           echo "=== Prisma migrations ==="
           compose run --rm --no-deps api \
             ./node_modules/.bin/prisma migrate deploy
-
-          echo "=== Prisma seed ==="
-          compose run --rm --no-deps api \
-            node dist/prisma/seed.js
 
           echo "=== Recreate API ==="
           compose up -d --force-recreate --no-deps api
