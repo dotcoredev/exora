@@ -200,11 +200,15 @@ jobs:
           compose run --rm --no-deps api \
             ./node_modules/.bin/prisma migrate deploy
 
-          echo "=== Recreate API ==="
-          compose up -d --force-recreate --no-deps api
+          if [[ "${{ needs.changes.outputs.api == 'true' || github.event_name == 'workflow_dispatch' }}" == "true" ]]; then
+            echo "=== Recreate API ==="
+            compose up -d --force-recreate --no-deps api
+          fi
 
-          echo "=== Recreate Web ==="
-          compose up -d --force-recreate --no-deps web
+          if [[ "${{ needs.changes.outputs.web == 'true' || github.event_name == 'workflow_dispatch' }}" == "true" ]]; then
+            echo "=== Recreate Web ==="
+            compose up -d --force-recreate --no-deps web
+          fi
 
           echo "=== Recreate Nginx ==="
           compose up -d --force-recreate --no-deps nginx
