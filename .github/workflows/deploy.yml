@@ -153,7 +153,7 @@ jobs:
           set -e
 
           COMPOSE="docker compose \
-            --env-file /var/nicode/env/prod.env \
+            --env-file /var/nicode/env/production.env \
             -f /var/nicode/infra/docker-compose.yml"
 
           echo "Pulling new images..."
