@@ -1,0 +1,34 @@
+name: Seed Database
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Напиши "yes", чтобы подтвердить сид продакшн-базы'
+        required: true
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.confirm == 'yes'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Configure SSH
+        shell: bash
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "${{ secrets.VPS_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Run seed
+        run: |
+          ssh \
+            -p "${{ secrets.VPS_PORT }}" \
+            "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" \
+            "docker compose --env-file /var/nicode/env/production.env -f /var/nicode/infra/docker-compose.yml run --rm --no-deps api node dist/prisma/seed.js"
