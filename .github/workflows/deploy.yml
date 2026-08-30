@@ -254,35 +254,40 @@ jobs:
             -p "${{ secrets.VPS_PORT }}" \
             "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" << 'EOF'
 
-          set -e
+          set -euo pipefail
 
-          COMPOSE="docker compose \
-            --env-file /var/nicode/env/production.env \
-            -f /var/nicode/infra/docker-compose.yml"
+          compose() {
+            docker compose \
+              --env-file /var/nicode/env/production.env \
+              -f /var/nicode/infra/docker-compose.yml \
+              "$@"
+          }
 
           echo "=== Pull images ==="
-          $COMPOSE pull
+          compose pull
 
           echo "=== Start PostgreSQL and Redis ==="
-          $COMPOSE up -d postgres redis
-
-          echo "=== Wait for PostgreSQL and Redis ==="
-          $COMPOSE up -d --wait postgres redis
+          compose up -d --wait postgres redis
 
           echo "=== Prisma migrations ==="
-          $COMPOSE run --rm --no-deps api ./node_modules/.bin/prisma migrate deploy
+          compose run --rm --no-deps api \
+            ./node_modules/.bin/prisma migrate deploy
 
           echo "=== Prisma seed ==="
-          $COMPOSE run --rm --no-deps api node dist/prisma/seed.js
+          compose run --rm --no-deps api \
+            node dist/prisma/seed.js
 
-          echo "=== Start API and Web ==="
-          $COMPOSE up -d api web
+          echo "=== Recreate API ==="
+          compose up -d --force-recreate --no-deps api
 
-          echo "=== Start Nginx ==="
-          $COMPOSE up -d nginx
+          echo "=== Recreate Web ==="
+          compose up -d --force-recreate --no-deps web
+
+          echo "=== Recreate Nginx ==="
+          compose up -d --force-recreate --no-deps nginx
 
           echo "=== Container status ==="
-          $COMPOSE ps -a
+          compose ps -a
 
           echo "=== Remove unused images ==="
           docker image prune -f
