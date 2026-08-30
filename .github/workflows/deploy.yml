@@ -267,7 +267,7 @@ jobs:
           $COMPOSE up -d --wait postgres redis
 
           echo "=== Prisma migrations ==="
-          $COMPOSE run --rm --no-deps api pnpm exec prisma migrate deploy
+          $COMPOSE run --rm --no-deps api ./node_modules/.bin/prisma migrate deploy
 
           echo "=== Start application ==="
           $COMPOSE up -d --remove-orphans
