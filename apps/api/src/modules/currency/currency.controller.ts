@@ -8,6 +8,11 @@ export class CurrencyController {
 
 	@Get("/")
 	async currencies(): Promise<CurrencyResponseDto[]> {
-		return this.currencyService.get();
+		return this.currencyService.currencies();
+	}
+
+	@Get("/popular")
+	async popularCurrencies(): Promise<CurrencyResponseDto[]> {
+		return this.currencyService.popularCurrencies();
 	}
 }

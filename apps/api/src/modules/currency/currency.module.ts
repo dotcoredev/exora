@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { CurrencyService } from "./currency.service";
 import { CurrencyController } from "./currency.controller";
+import { ExchangeRateModule } from "@/modules/exchange-rate/exchange-rate.module";
 
 /*
 	список для фильтра;
@@ -9,6 +10,7 @@ import { CurrencyController } from "./currency.controller";
 */
 
 @Module({
+	imports: [ExchangeRateModule],
 	controllers: [CurrencyController],
 	providers: [CurrencyService],
 })

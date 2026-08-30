@@ -1,8 +1,12 @@
 import { Controller, Get, Query } from "@nestjs/common";
 import { ExchangeRateService } from "./exchange-rate.service";
-import type { CurrencyResponseDto } from "@/common/dto/responses";
+import type { CurrencyRateResponseDto } from "@/common/dto/responses";
 import { ZodValidationPipe } from "@/common/pipes";
 import { type RatesRequestDto, RatesRequestSchema } from "./dto/requests";
+import {
+	type RecentExchangeRequestDto,
+	recentExchangeRequestSchema,
+} from "../rate-history/dto/requests/recentExchange.request.dto";
 
 @Controller("rates")
 export class ExchangeRateController {
@@ -12,10 +16,15 @@ export class ExchangeRateController {
 	public async getRate(
 		@Query(new ZodValidationPipe(RatesRequestSchema))
 		query: RatesRequestDto,
-	): Promise<CurrencyResponseDto[]> {
-		return this.exchangeRateService.getRate(
-			query.base,
-			query.quotes ?? null,
-		);
+	): Promise<CurrencyRateResponseDto[]> {
+		return this.exchangeRateService.getRate(query.base, query?.quotes);
+	}
+
+	@Get("/recent-exchange")
+	async recentExchangeRates(
+		@Query(new ZodValidationPipe(recentExchangeRequestSchema))
+		query: RecentExchangeRequestDto,
+	): Promise<CurrencyRateResponseDto[]> {
+		return this.exchangeRateService.recentExchange(query.base);
 	}
 }

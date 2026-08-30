@@ -1,0 +1,12 @@
+model RateHistory {
+  id          String   @id @default(nanoid())
+  base        String   @map("base") @db.VarChar(3)
+  quote       String   @map("quote") @db.VarChar(3)
+  rate        Decimal
+  description String?
+  date        DateTime @db.Date
+
+  @@unique([base, quote, date])
+  @@index([base, quote, date])
+  @@map("rate_history")
+}

@@ -1,10 +1,12 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { FrankfurterService } from "./frankfurter.service";
-import type { CurrencyResponseDto } from "@/common/dto/responses";
+import type { CurrencyRateResponseDto } from "@/common/dto/responses";
 import { RedisService } from "@/infra/redis/redis.service";
-import { RATES_POPULAR } from "./constants/rates.constants";
 import { ConfigService } from "@nestjs/config";
 import { ConfigsType } from "@/config";
+import { RATES_POPULAR } from "@/common/constants";
+import { RateHistoryService } from "@/modules/rate-history/rate-history.service";
+import { CurrencyCacheService } from "./currency-cache.service";
 
 @Injectable()
 export class ExchangeRateService {
@@ -15,6 +17,8 @@ export class ExchangeRateService {
 		private readonly frankfurterService: FrankfurterService,
 		private readonly redisService: RedisService,
 		private readonly configService: ConfigService<ConfigsType>,
+		private readonly rateHistoryService: RateHistoryService,
+		private readonly currencyCacheService: CurrencyCacheService,
 	) {
 		this.TTL_RATES_POPULAR = this.configService.getOrThrow(
 			"app.ttl_rates_popular",
@@ -24,30 +28,126 @@ export class ExchangeRateService {
 		);
 	}
 
+	public async recentExchange(
+		base: string,
+	): Promise<CurrencyRateResponseDto[]> {
+		const quotes = await this.getPopularQuotes(base, 20);
+		console.log(11, quotes);
+
+		const result = await this.rateHistoryService.getRecentRates(
+			base,
+			quotes,
+		);
+		return result.map((rate) => ({
+			...rate,
+			base:
+				typeof rate.base === "string"
+					? this.currencyCacheService.get(rate.base)
+					: rate.base,
+			quote:
+				typeof rate.quote === "string"
+					? this.currencyCacheService.get(rate.quote)
+					: rate.quote,
+		}));
+	}
+
+	private async getPopularQuotes(
+		base: string,
+		limit = 20,
+	): Promise<string[]> {
+		return this.redisService.zrevrange(
+			`${RATES_POPULAR}:${base}`,
+			0,
+			limit,
+		);
+	}
+
 	public async getRate(
 		base: string,
-		quotes: string | null,
-	): Promise<CurrencyResponseDto[]> {
-		const result = await this.frankfurterService.getRate(base, quotes);
-		this.incrementPairPopularity(base, quotes).catch((error) => {
+		quotes?: string,
+	): Promise<CurrencyRateResponseDto[]> {
+		const arrQutes = quotes ? quotes.split(",").filter((item) => item) : [];
+		const requestedQuotes = [...new Set([...arrQutes])].join(",");
+
+		const result = await this.frankfurterService.getRate(
+			base,
+			requestedQuotes,
+		);
+
+		const resultPercent = await this.rateHistoryService.getRecentRates(
+			base,
+			arrQutes,
+		);
+
+		//console.log(111, arrQutes, result, resultPercent);
+
+		this.incrementPairPopularity(base, requestedQuotes).catch((error) => {
 			this.logger.error(
-				`Failed to increment popularity ${base}:${quotes}`,
+				`Failed to increment popularity ${base}:${requestedQuotes}`,
 				error,
 			);
 		});
-		return result;
+
+		return result.map((item) => {
+			const percent = resultPercent.find((itemP) => {
+				const baseCode =
+					typeof item.base === "string"
+						? item.base
+						: item.base?.isoCode;
+				const quoteCode =
+					typeof item.quote === "string"
+						? item.quote
+						: item.quote?.isoCode;
+
+				return itemP.base === baseCode && itemP.quote === quoteCode;
+			});
+
+			return {
+				...item,
+				change: percent?.change ?? null,
+				changePercent: percent?.changePercent ?? null,
+			};
+		});
 	}
 
 	private async incrementPairPopularity(
 		base: string,
-		quotes: string | null,
+		quotes?: string,
 	): Promise<void> {
-		const pair = `${base}:${quotes ?? "all"}`;
+		const key = `${RATES_POPULAR}:${base}`;
 
 		await this.redisService
 			.multi()
-			.zincrby(RATES_POPULAR, 1, pair)
+			.zincrby(RATES_POPULAR, 1, base)
 			.expire(RATES_POPULAR, this.TTL_RATES_POPULAR, "NX")
 			.exec();
+
+		if (!quotes?.length) {
+			await this.redisService
+				.multi()
+				.zincrby(key, 1, "all")
+				.expire(key, this.TTL_RATES_POPULAR, "NX")
+				.exec();
+
+			return;
+		}
+
+		const quoteCodes = [
+			...new Set(
+				quotes
+					.split(",")
+					.map((quote) => quote.trim())
+					.filter(Boolean),
+			),
+		];
+
+		const multi = this.redisService.multi();
+
+		for (const quote of quoteCodes) {
+			multi.zincrby(key, 1, quote);
+		}
+
+		multi.expire(key, this.TTL_RATES_POPULAR, "NX");
+		await multi.exec();
 	}
 }

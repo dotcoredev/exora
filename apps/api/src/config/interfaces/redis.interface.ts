@@ -6,6 +6,7 @@ export const redisConfigSchema = z
 		REDIS_PASSWORD: z.string(),
 		REDIS_HOST: z.string(),
 		REDIS_PORT: z.coerce.number().min(5000).max(7400),
+		lazyConnect: z.boolean().default(true),
 		maxRetriesPerRequest: z.number().default(5), // maxRetriesPerRequest flag to control the maximum number of retries per request
 		enableOfflineQueue: z.boolean().default(true), // enableOfflineQueue flag to control whether commands are queued while the connection is down
 	})
@@ -16,6 +17,7 @@ export const redisConfigSchema = z
 		port: env.REDIS_PORT,
 		maxRetriesPerRequest: env.maxRetriesPerRequest,
 		enableOfflineQueue: env.enableOfflineQueue,
+		lazyConnect: env.lazyConnect,
 	}));
 
 export type RedisConfigType = z.infer<typeof redisConfigSchema>;
