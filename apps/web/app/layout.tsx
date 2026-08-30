@@ -17,6 +17,9 @@ export const metadata: Metadata = {
 	title: "Exora",
 	description:
 		"Explore global currencies, exchange rates, and historical trends.",
+	icons: {
+		icon: "https://files.nicodes.ru/exora.svg",
+	},
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
