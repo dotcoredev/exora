@@ -79,8 +79,9 @@ services:
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro,Z
       - ./nginx/conf.d:/etc/nginx/conf.d:ro,Z
-
+      - /var/files:/var/files:ro,Z
       - /var/nicode/certs:/etc/letsencrypt:ro,Z
+
 
 
 volumes:
