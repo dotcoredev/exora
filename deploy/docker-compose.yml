@@ -88,8 +88,8 @@ services:
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
 
       # Сертификаты лежат на VPS
-      - /var/certs/exora:/etc/nginx/ssl/exora:ro
-      - /var/certs/api:/etc/nginx/ssl/api:ro
+      - /var/nicode/certs/exora:/etc/nginx/ssl/exora:ro
+      - /var/nicode/certs/api:/etc/nginx/ssl/api:ro
 
 
 volumes:

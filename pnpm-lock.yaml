@@ -53,6 +53,9 @@ importers:
       '@prisma/client':
         specifier: ^7.9.1
         version: 7.9.1(prisma@7.9.1(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3))(typescript@5.9.3)
+      dotenv:
+        specifier: ^17.4.2
+        version: 17.4.2
       ioredis:
         specifier: ^6.0.0
         version: 6.0.0
@@ -90,9 +93,6 @@ importers:
       '@types/supertest':
         specifier: ^7.0.0
         version: 7.2.1
-      dotenv:
-        specifier: ^17.4.2
-        version: 17.4.2
       globals:
         specifier: ^17.0.0
         version: 17.9.0
