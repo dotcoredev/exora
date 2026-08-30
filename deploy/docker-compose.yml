@@ -74,9 +74,9 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
 
-      # Сертификаты лежат на VPS
-      - /var/nicode/certs/exora:/etc/nginx/ssl/exora:ro
-      - /var/nicode/certs/api:/etc/nginx/ssl/api:ro
+      # Сертификаты
+      - /var/nicode/certs/live/exora.nicodes.ru:/etc/nginx/ssl/exora:ro
+      - /var/nicode/certs/live/api.nicodes.ru:/etc/nginx/ssl/api:ro
 
 
 volumes:
