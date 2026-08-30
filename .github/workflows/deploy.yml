@@ -1,11 +1,10 @@
-name: Deploy
+name: Deploy Exora
 
 on:
   push:
     branches:
-      - main
+      - master
 
-  # Позволяет запустить deploy руками из GitHub
   workflow_dispatch:
 
 concurrency:
@@ -15,18 +14,68 @@ concurrency:
 env:
   REGISTRY: ghcr.io
 
-  # При необходимости можно заменить repository_owner
-  # на конкретный lowercase GitHub login.
-  API_IMAGE: ghcr.io/${{ github.repository_owner }}/exora-api
-  WEB_IMAGE: ghcr.io/${{ github.repository_owner }}/exora-web
+  API_IMAGE: ghcr.io/dotcoredev/exora-api
+  WEB_IMAGE: ghcr.io/dotcoredev/exora-web
+
 
 jobs:
   # =========================================================
-  # BUILD + PUSH
+  # CHECK CHANGED FILES
   # =========================================================
-  build:
-    name: Build and push images
+  changes:
+    name: Detect changes
     runs-on: ubuntu-latest
+
+    outputs:
+      api: ${{ steps.filter.outputs.api }}
+      web: ${{ steps.filter.outputs.web }}
+      infra: ${{ steps.filter.outputs.infra }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Detect changed paths
+        uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          filters: |
+            api:
+              - 'apps/api/**'
+              - 'packages/**'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+              - 'turbo.json'
+              - '.dockerignore'
+
+            web:
+              - 'apps/web/**'
+              - 'packages/**'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+              - 'turbo.json'
+              - '.dockerignore'
+
+            infra:
+              - 'deploy/**'
+              - '.github/workflows/deploy.yml'
+
+
+  # =========================================================
+  # BUILD API
+  # =========================================================
+  build-api:
+    name: Build API
+    runs-on: ubuntu-latest
+
+    needs:
+      - changes
+
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      needs.changes.outputs.api == 'true'
 
     permissions:
       contents: read
@@ -34,26 +83,24 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Login to GHCR
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # -------------------------
-      # API
-      # -------------------------
       - name: Build and push API
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./apps/api/Dockerfile
+
           push: true
 
           build-args: |
@@ -66,14 +113,45 @@ jobs:
           cache-from: type=gha,scope=api
           cache-to: type=gha,mode=max,scope=api
 
-      # -------------------------
-      # WEB
-      # -------------------------
+
+  # =========================================================
+  # BUILD WEB
+  # =========================================================
+  build-web:
+    name: Build Web
+    runs-on: ubuntu-latest
+
+    needs:
+      - changes
+
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      needs.changes.outputs.web == 'true'
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Login to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build and push Web
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./apps/web/Dockerfile
+
           push: true
 
           build-args: |
@@ -91,21 +169,44 @@ jobs:
   # DEPLOY VPS
   # =========================================================
   deploy:
-    name: Deploy to VPS
+    name: Deploy VPS
     runs-on: ubuntu-latest
+
     needs:
-      - build
+      - changes
+      - build-api
+      - build-web
+
+    # skipped build-api/build-web не должны блокировать deploy.
+    if: |
+      always() &&
+      needs.changes.result == 'success' &&
+      (
+        github.event_name == 'workflow_dispatch' ||
+        needs.changes.outputs.api == 'true' ||
+        needs.changes.outputs.web == 'true' ||
+        needs.changes.outputs.infra == 'true'
+      ) &&
+      (
+        needs.build-api.result == 'success' ||
+        needs.build-api.result == 'skipped'
+      ) &&
+      (
+        needs.build-web.result == 'success' ||
+        needs.build-web.result == 'skipped'
+      )
 
     permissions:
       contents: read
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
-      # -------------------------
+
+      # -------------------------------------------------------
       # SSH
-      # -------------------------
+      # -------------------------------------------------------
       - name: Configure SSH
         shell: bash
         run: |
@@ -118,19 +219,21 @@ jobs:
           printf '%s\n' "${{ secrets.VPS_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
 
-      # -------------------------
-      # Prepare directory
-      # -------------------------
-      - name: Prepare infra directory
+
+      # -------------------------------------------------------
+      # SERVER DIRECTORIES
+      # -------------------------------------------------------
+      - name: Prepare server directory
         run: |
           ssh \
             -p "${{ secrets.VPS_PORT }}" \
             "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" \
             "mkdir -p /var/nicode/infra"
 
-      # -------------------------
-      # Copy infrastructure
-      # -------------------------
+
+      # -------------------------------------------------------
+      # UPLOAD INFRA
+      # -------------------------------------------------------
       - name: Upload infrastructure
         run: |
           rsync \
@@ -141,9 +244,10 @@ jobs:
             deploy/ \
             "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/var/nicode/infra/"
 
-      # -------------------------
-      # Deploy
-      # -------------------------
+
+      # -------------------------------------------------------
+      # DEPLOY
+      # -------------------------------------------------------
       - name: Deploy containers
         run: |
           ssh \
@@ -156,20 +260,24 @@ jobs:
             --env-file /var/nicode/env/production.env \
             -f /var/nicode/infra/docker-compose.yml"
 
-          echo "Pulling new images..."
+          echo "=== Pull images ==="
           $COMPOSE pull
 
-          echo "Starting database infrastructure..."
+          echo "=== Start PostgreSQL and Redis ==="
           $COMPOSE up -d --wait postgres redis
 
-          echo "Applying Prisma migrations..."
-          $COMPOSE run --rm --no-deps api pnpm exec prisma migrate deploy
+          echo "=== Prisma migrations ==="
+          $COMPOSE run --rm --no-deps api ./node_modules/.bin/prisma migrate deploy
 
-          echo "Starting Exora..."
-          $COMPOSE up -d --remove-orphans --wait
+          echo "=== Start application ==="
+          $COMPOSE up -d --remove-orphans
 
-          echo "Removing unused Docker images..."
+          echo "=== Containers ==="
+          $COMPOSE ps
+
+          echo "=== Remove unused images ==="
           docker image prune -f
 
-          echo "Deployment completed."
+          echo "=== Deploy completed ==="
+
           EOF
