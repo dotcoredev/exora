@@ -272,6 +272,9 @@ jobs:
           echo "=== Prisma migrations ==="
           $COMPOSE run --rm --no-deps api ./node_modules/.bin/prisma migrate deploy
 
+          echo "=== Prisma seed ==="
+          $COMPOSE run --rm --no-deps api node dist/prisma/seed.js
+
           echo "=== Start API and Web ==="
           $COMPOSE up -d api web
 
