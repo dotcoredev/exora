@@ -3,7 +3,7 @@ name: Deploy Exora
 on:
   push:
     branches:
-      - master
+      - main
 
   workflow_dispatch:
 
