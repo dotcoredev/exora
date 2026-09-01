@@ -184,6 +184,11 @@ jobs:
 
           set -euo pipefail
 
+          echo "=== Login to GHCR ==="
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io \
+            -u "${{ github.actor }}" \
+            --password-stdin
+
           compose() {
             docker compose \
               --env-file /var/nicode/env/production.env \
