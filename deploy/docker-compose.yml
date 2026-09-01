@@ -56,6 +56,9 @@ services:
       redis:
         condition: service_healthy
 
+  resume:
+    image: ghcr.io/dotcoredev/resume
+    restart: unless-stopped
 
   web:
     image: ghcr.io/dotcoredev/exora-web:latest
@@ -70,6 +73,7 @@ services:
     depends_on:
       - web
       - api
+      - resume
 
     ports:
       - "80:80/tcp"
