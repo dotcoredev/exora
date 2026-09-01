@@ -216,6 +216,9 @@ jobs:
             compose up -d --force-recreate --no-deps web
           fi
 
+          echo "=== Recreate Resume ==="
+          compose up -d --force-recreate --no-deps resume
+
           echo "=== Recreate Nginx ==="
           compose up -d --force-recreate --no-deps nginx
 
