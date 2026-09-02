@@ -7,7 +7,8 @@ import { CurrencyModule } from "./modules/currency/currency.module";
 import { ExchangeRateModule } from "./modules/exchange-rate/exchange-rate.module";
 import { RateHistoryModule } from "./modules/rate-history/rate-history.module";
 import { AppThrottlerModule } from "@/infra/throttler/throttler.module";
-import { HealthModule } from './health/health.module';
+import { HealthModule } from "./health/health.module";
+import { ResumeModule } from "./modules/resume/resume.module";
 
 @Module({
 	imports: [
@@ -22,6 +23,7 @@ import { HealthModule } from './health/health.module';
 		ExchangeRateModule,
 		RateHistoryModule,
 		HealthModule,
+		ResumeModule,
 	],
 })
 export class AppModule {}

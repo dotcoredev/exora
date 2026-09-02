@@ -7,6 +7,7 @@ export const appConfigSchema = z
 		TTL_RATES: z.coerce.number().int().default(14400),
 		TTL_CURRENCY: z.coerce.number().int().default(72000),
 		ORIGINS: z.string(),
+		RESUME_PDF_PATH: z.string(),
 	})
 	.transform((env) => ({
 		port: env.PORT,
@@ -14,6 +15,7 @@ export const appConfigSchema = z
 		ttl_rates: env.TTL_RATES,
 		ttl_currency: env.TTL_CURRENCY,
 		origins: env.ORIGINS,
+		resumePdfPath: env.RESUME_PDF_PATH,
 	}));
 
 export type appConfigType = z.infer<typeof appConfigSchema>;
