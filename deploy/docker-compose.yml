@@ -50,6 +50,8 @@ services:
     restart: unless-stopped
     env_file:
       - /var/nicode/env/production.env
+    volumes:
+      - /var/files/files:/var/files/files
     depends_on:
       postgres:
         condition: service_healthy
