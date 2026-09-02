@@ -56,7 +56,7 @@ COPY --from=builder /app/apps/api/package.json ./apps/api/package.json
 
 WORKDIR /app/apps/api
 
-RUN pnpm exec playwright install --with-deps chromium \
+RUN node node_modules/playwright/cli.js install --with-deps chromium \
     && rm -rf /var/lib/apt/lists/*
 
 EXPOSE 4001
