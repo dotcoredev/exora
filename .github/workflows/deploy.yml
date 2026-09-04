@@ -201,7 +201,7 @@ jobs:
           # =========================================================
 
           echo "=== Start PostgreSQL and Redis ==="
-          compose up -d --wait postgres redis
+          compose up -d --wait postgres pgbouncer redis
 
           # =========================================================
           # API
