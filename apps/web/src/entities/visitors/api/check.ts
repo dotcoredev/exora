@@ -5,10 +5,17 @@ export async function visitorCheck({
 	path,
 	referrer,
 	signal,
-}: CheckVisitorRequestDto): Promise<void> {
-	await api.post<CheckVisitorResponseDto>("/visitors/check", {
-		path,
-		referrer,
-		signal,
-	});
+}: CheckVisitorRequestDto): Promise<CheckVisitorResponseDto> {
+	const { data } = await api.post<CheckVisitorResponseDto>(
+		"/visitors/check",
+		{
+			path,
+			referrer,
+		},
+		{
+			signal,
+		},
+	);
+
+	return data;
 }
