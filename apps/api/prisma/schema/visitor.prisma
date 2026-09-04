@@ -1,0 +1,18 @@
+model Visitor {
+  id String @id @default(nanoid())
+
+  host    String?
+  path    String?
+  referer String?
+  ip      String?
+
+  userAgent String?
+  browser   String?
+  os        String?
+  device    String?
+
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@map("visitors")
+}

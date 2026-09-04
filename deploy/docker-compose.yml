@@ -8,8 +8,8 @@ services:
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
       POSTGRES_DB: ${DATABASE_NAME}
 
-    #ports:
-    #  - "5432:5432"
+    ports:
+      - "5432:5432"
 
     volumes:
       - /var/nicode/dbs/postgres:/var/lib/postgresql/data
@@ -19,7 +19,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
-
 
   redis:
     image: redis:7-alpine
@@ -43,7 +42,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
-
 
   api:
     image: ghcr.io/dotcoredev/exora-api:latest

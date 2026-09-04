@@ -9,6 +9,7 @@ import { RateHistoryModule } from "./modules/rate-history/rate-history.module";
 import { AppThrottlerModule } from "@/infra/throttler/throttler.module";
 import { HealthModule } from "./health/health.module";
 import { ResumeModule } from "./modules/resume/resume.module";
+import { VisitorsModule } from "./modules/visitors/visitors.module";
 
 @Module({
 	imports: [
@@ -24,6 +25,7 @@ import { ResumeModule } from "./modules/resume/resume.module";
 		RateHistoryModule,
 		HealthModule,
 		ResumeModule,
+		VisitorsModule,
 	],
 })
 export class AppModule {}
