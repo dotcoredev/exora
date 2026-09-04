@@ -5,7 +5,7 @@ export const postgresConfigSchema = z
 		DATABASE_USER: z.string(),
 		DATABASE_PASSWORD: z.string(),
 		DATABASE_HOST: z.string(),
-		DATABASE_PORT: z.coerce.number().min(5000).max(6400),
+		DATABASE_PORT: z.coerce.number().min(5000).max(7400),
 		DATABASE_NAME: z.string(),
 		DATABASE_URI: z.string({
 			error: 'DATABASE_URL is required and must be a valid DB connection string (e.g., "postgresql://user:password@host:port/database")',

@@ -20,6 +20,30 @@ services:
       timeout: 5s
       retries: 10
 
+  pgbouncer:
+    container_name: pgbouncer
+    image: edoburu/pgbouncer:v1.25.2-p0
+    restart: always
+
+    environment:
+      DB_HOST: postgres
+      DB_USER: ${DATABASE_USER}
+      DB_PASSWORD: ${DATABASE_PASSWORD}
+      DB_NAME: ${DATABASE_NAME}
+
+      AUTH_TYPE: scram-sha-256
+
+      POOL_MODE: transaction
+      MAX_CLIENT_CONN: 100
+      DEFAULT_POOL_SIZE: 20
+
+    ports:
+      - "6432:5432"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   redis:
     image: redis:7-alpine
     restart: unless-stopped
