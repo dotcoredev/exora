@@ -219,6 +219,9 @@ jobs:
           echo "=== Recreate Resume ==="
           compose up -d --force-recreate --no-deps resume
 
+          echo "=== Recreate nicodes.ru ==="
+          compose up -d --force-recreate --no-deps nicodes
+
           echo "=== Recreate Nginx ==="
           compose up -d --force-recreate --no-deps nginx
 

@@ -60,6 +60,10 @@ services:
     image: ghcr.io/dotcoredev/resume:latest
     restart: unless-stopped
 
+  nicodes:
+    image: ghcr.io/dotcoredev/nicodes:latest
+    restart: unless-stopped
+
   web:
     image: ghcr.io/dotcoredev/exora-web:latest
     restart: unless-stopped
@@ -74,6 +78,7 @@ services:
       - web
       - api
       - resume
+      - nicodes
 
     ports:
       - "80:80/tcp"
