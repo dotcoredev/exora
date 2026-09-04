@@ -12,6 +12,16 @@ export class VisitorsService {
 		req: Request,
 		dto: CheckVisitorRequestDto,
 	): Promise<{ message: string }> {
+		const existingVisitor = await this.prismaService.visitor.findFirst({
+			where: {
+				ip: req.ip,
+				userAgent: req.headers["user-agent"],
+				host: req.headers.origin ?? null,
+			},
+		});
+
+		if (existingVisitor) return { message: "Visitor already checked" };
+
 		const userAgent = req.headers["user-agent"] ?? "";
 
 		const parser = new UAParser(userAgent);
