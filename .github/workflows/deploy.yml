@@ -196,34 +196,67 @@ jobs:
               "$@"
           }
 
-          echo "=== Pull images ==="
-          compose pull
+          # =========================================================
+          # INFRA
+          # =========================================================
 
           echo "=== Start PostgreSQL and Redis ==="
           compose up -d --wait postgres redis
 
-          echo "=== Prisma migrations ==="
-          compose run --rm --no-deps -T api \
-            ./node_modules/.bin/prisma migrate deploy < /dev/null
+          # =========================================================
+          # API
+          # =========================================================
 
           if [[ "${{ needs.changes.outputs.api == 'true' || github.event_name == 'workflow_dispatch' }}" == "true" ]]; then
+            echo "=== Pull API ==="
+            compose pull api
+
+            echo "=== Prisma migrations ==="
+            compose run --rm --no-deps -T api \
+              ./node_modules/.bin/prisma migrate deploy < /dev/null
+
             echo "=== Recreate API ==="
             compose up -d --force-recreate --no-deps api
           fi
 
+          # =========================================================
+          # WEB
+          # =========================================================
+
           if [[ "${{ needs.changes.outputs.web == 'true' || github.event_name == 'workflow_dispatch' }}" == "true" ]]; then
+            echo "=== Pull Web ==="
+            compose pull web
+
             echo "=== Recreate Web ==="
             compose up -d --force-recreate --no-deps web
           fi
 
+          # =========================================================
+          # RESUME
+          # =========================================================
+
+          echo "=== Pull Resume ==="
+          compose pull resume
+
           echo "=== Recreate Resume ==="
           compose up -d --force-recreate --no-deps resume
+
+          # =========================================================
+          # NICODES
+          # =========================================================
+
+          echo "=== Pull nicodes.ru ==="
+          compose pull nicodes
 
           echo "=== Recreate nicodes.ru ==="
           compose up -d --force-recreate --no-deps nicodes
 
-          echo "=== Recreate Nginx ==="
-          compose up -d --force-recreate --no-deps nginx
+          # =========================================================
+          # NGINX
+          # =========================================================
+
+          echo "=== Ensure Nginx is running ==="
+          compose up -d --no-deps nginx
 
           echo "=== Container status ==="
           compose ps -a
