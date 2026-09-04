@@ -24,7 +24,7 @@ export class VisitorsService {
 
 				ip: req.ip,
 				userAgent: req.headers["user-agent"],
-				host: req.hostname,
+				host: req.headers.origin ?? null,
 
 				browser: result.browser.name ?? null,
 				os: result.os.name ?? null,
