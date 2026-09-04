@@ -74,7 +74,7 @@ jobs:
             dockerfile: ./apps/api/Dockerfile
             changed: ${{ needs.changes.outputs.api }}
             build_args: |
-              DATABASE_URI=postgresql://unused:unused@localhost:5432/unused
+              DIRECT_DATABASE_URI=postgresql://unused:unused@localhost:5432/unused
           - name: web
             image: ghcr.io/dotcoredev/exora-web
             dockerfile: ./apps/web/Dockerfile

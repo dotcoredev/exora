@@ -12,10 +12,10 @@ WORKDIR /app
 # Builder
 # -------------------------
 FROM base AS builder
-ARG DATABASE_URI
+ARG DIRECT_DATABASE_URI
 COPY . .
 RUN pnpm install --frozen-lockfile
-RUN DATABASE_URI="$DATABASE_URI" \
+RUN DIRECT_DATABASE_URI="$DIRECT_DATABASE_URI" \
     pnpm --filter @exore/api exec prisma generate
 RUN pnpm --filter @exore/api build
 
