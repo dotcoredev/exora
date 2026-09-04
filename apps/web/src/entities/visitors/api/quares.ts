@@ -7,7 +7,7 @@ export function useVisitorCheck(): UseQueryResult<void, Error> {
 		queryFn: ({ signal }) => {
 			visitorCheck({
 				path: window.location.pathname,
-				referrer: "https://exora.nicodes.ru/",
+				referrer: document.referrer,
 				signal,
 			});
 		},
