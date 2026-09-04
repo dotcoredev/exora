@@ -1,6 +1,6 @@
 "use client";
 
-import { useVisitorCheck } from "@/entities/visitors/api/quares";
+import { useVisitorCheck } from "@/entities/visitors";
 import { ExchangeFilterWidget } from "@/widgets/exchange-filter";
 import { ExchangeRateChart } from "@/widgets/exchange-rate";
 import { HeaderWidget } from "@/widgets/header";
