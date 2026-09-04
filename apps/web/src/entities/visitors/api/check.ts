@@ -4,16 +4,12 @@ import type { CheckVisitorRequestDto, CheckVisitorResponseDto } from "../model";
 export async function visitorCheck({
 	path,
 	referrer,
-	signal,
 }: CheckVisitorRequestDto): Promise<CheckVisitorResponseDto> {
 	const { data } = await api.post<CheckVisitorResponseDto>(
 		"/visitors/check",
 		{
 			path,
 			referrer,
-		},
-		{
-			signal,
 		},
 	);
 

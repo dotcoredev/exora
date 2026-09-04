@@ -4,13 +4,11 @@ import { visitorCheck } from "./check";
 export function useVisitorCheck(): UseQueryResult<void, Error> {
 	return useQuery({
 		queryKey: ["visitors/check"],
-		queryFn: ({ signal }) => {
+		queryFn: () =>
 			visitorCheck({
 				path: window.location.pathname,
 				referrer: document.referrer,
-				signal,
-			});
-		},
+			}),
 
 		staleTime: 1000 * 60 * 60, // 1 час данные считаются свежими
 		gcTime: 1000 * 60 * 60, // 1 час держим неактивный кэш
