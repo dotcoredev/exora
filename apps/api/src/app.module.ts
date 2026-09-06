@@ -10,6 +10,7 @@ import { AppThrottlerModule } from "@/infra/throttler/throttler.module";
 import { HealthModule } from "./health/health.module";
 import { ResumeModule } from "./modules/resume/resume.module";
 import { VisitorsModule } from "./modules/visitors/visitors.module";
+import { StorageS3Module } from './modules/storage_s3/storage_s3.module';
 
 @Module({
 	imports: [
@@ -26,6 +27,7 @@ import { VisitorsModule } from "./modules/visitors/visitors.module";
 		HealthModule,
 		ResumeModule,
 		VisitorsModule,
+		StorageS3Module,
 	],
 })
 export class AppModule {}
