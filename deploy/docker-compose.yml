@@ -87,7 +87,7 @@ services:
     env_file:
       - /var/nicode/env/production.env
     ports:
-      - "4005:3000"
+      - "4005:4001"
     healthcheck:
       test:
         [
