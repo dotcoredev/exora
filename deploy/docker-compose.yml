@@ -80,6 +80,23 @@ services:
       redis:
         condition: service_healthy
 
+  profile_api:
+    image: ghcr.io/dotcoredev/profile_api:latest
+    container_name: profile_api
+    restart: unless-stopped
+    env_file:
+      - /var/nicode/env/production.env
+    ports:
+      - "4005:3000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://localhost:3000/api/health').then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))"
+        ]
+
   resume:
     image: ghcr.io/dotcoredev/resume:latest
     restart: unless-stopped

@@ -8,6 +8,13 @@ export const appConfigSchema = z
 		TTL_CURRENCY: z.coerce.number().int().default(72000),
 		ORIGINS: z.string(),
 		RESUME_PDF_PATH: z.string(),
+		STORAGE_SERVICE_PORT: z.coerce
+			.number()
+			.int()
+			.min(1)
+			.max(65535)
+			.default(50001),
+		STORAGE_SERVICE_HOST: z.string().default("localhost"),
 	})
 	.transform((env) => ({
 		port: env.PORT,
@@ -16,6 +23,8 @@ export const appConfigSchema = z
 		ttl_currency: env.TTL_CURRENCY,
 		origins: env.ORIGINS,
 		resumePdfPath: env.RESUME_PDF_PATH,
+		storageServicePort: env.STORAGE_SERVICE_PORT,
+		storageServiceHost: env.STORAGE_SERVICE_HOST,
 	}));
 
 export type appConfigType = z.infer<typeof appConfigSchema>;
