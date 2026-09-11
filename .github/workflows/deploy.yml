@@ -252,6 +252,16 @@ jobs:
           compose up -d --force-recreate --no-deps nicodes
 
           # =========================================================
+          # PROFILES server
+          # =========================================================
+
+          echo "=== Pull profile_api ==="
+          compose pull profile_api
+
+          echo "=== Recreate profile_api ==="
+          compose up -d --force-recreate --no-deps profile_api
+
+          # =========================================================
           # NGINX
           # =========================================================
 
